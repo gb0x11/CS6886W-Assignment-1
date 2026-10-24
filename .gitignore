@@ -1,0 +1,30 @@
+# environment / caches
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# dataset (downloaded automatically by torchvision / see README)
+data/
+
+# W&B local run files and logs
+wandb/
+logs/
+
+# per-run checkpoints; only the final model is committed
+checkpoints/*
+!checkpoints/best_model.pt
+
+# LaTeX build artefacts
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+
+# never commit credentials
+.env
+*.token
+.netrc
+
+# course handout
+A1.pdf

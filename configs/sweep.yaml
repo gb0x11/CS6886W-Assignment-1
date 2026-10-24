@@ -1,0 +1,33 @@
+# W&B sweep over the configuration space explored in Question 2.
+#   wandb sweep configs/sweep.yaml
+#   wandb agent <entity>/cs6886w-vgg6-cifar10/<sweep_id> --count 20
+# The same space is sampled offline by `python run_experiments.py --group sweep`.
+program: train.py
+project: cs6886w-vgg6-cifar10
+method: random
+metric:
+  name: val_acc
+  goal: maximize
+parameters:
+  activation:
+    values: [relu, sigmoid, tanh, silu, gelu]
+  optimizer:
+    values: [sgd, nesterov, adam, adagrad, rmsprop, nadam]
+  lr:
+    values: [0.0003, 0.001, 0.003, 0.01, 0.05, 0.1]
+  batch_size:
+    values: [64, 128, 256, 512]
+  epochs:
+    values: [10, 20, 30]
+  momentum:
+    values: [0.0, 0.9]
+  weight_decay:
+    values: [0.0, 0.0005]
+  batch_norm:
+    values: [true, false]
+command:
+  - ${env}
+  - python
+  - ${program}
+  - --group=sweep
+  - ${args}
