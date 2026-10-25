@@ -162,7 +162,8 @@ def parallel_coordinates(df, path):
         cols.append(((x - lo) / (hi - lo if hi > lo else 1)).values)
         tv = sorted(v.unique())
         if col == "best_val_acc":  # continuous metric: evenly spaced round ticks
-            tv = list(np.arange(np.ceil(v.min() / 5) * 5, v.max() + 0.01, 5))
+            step = 10 if v.max() - v.min() > 40 else 5
+            tv = list(np.arange(np.ceil(v.min() / step) * step, v.max() + 0.01, step))
         elif len(tv) > 6:  # label a spread-out subset of the values actually used
             tv = [tv[i] for i in np.linspace(0, len(tv) - 1, 6).round().astype(int)]
         tx = [((np.log10(t) if scale == "log" else t) - lo) / (hi - lo if hi > lo else 1) for t in tv]

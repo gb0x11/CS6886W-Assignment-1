@@ -2,9 +2,10 @@
 
 This repository explores how the **activation function, optimizer, batch size, number of epochs and learning rate** affect a small VGG6 network (≈0.26 M parameters) trained on CIFAR-10. All runs are logged to Weights & Biases.
 
-**Author:** Gowtham B (CS25M508)
-**W&B project:** https://forge.coreweave.com/wandb/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10
-**W&B report (Question 3 plots):** https://forge.coreweave.com/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10/reports/CS6886W-A1:-VGG6-on-CIFAR-10-(Question-3-plots)--VmlldzoxODE3NjQ4Mw==
+**Author:** Gowtham B (CS25M508)  
+**W&B project:** https://forge.coreweave.com/wandb/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10  
+**W&B report (Question 3 plots):** https://forge.coreweave.com/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10/reports/CS6886W-A1:-VGG6-on-CIFAR-10-(Question-3-plots)--VmlldzoxODE3NjQ4Mw==  
+**W&B sweep (random search, 6 runs):** https://forge.coreweave.com/wandb/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10/sweeps/czt61c5k  
 **Full report (PDF):** [`report/report.pdf`](report/report.pdf)
 
 ## Best result
@@ -78,9 +79,10 @@ python evaluate.py --checkpoint checkpoints/best_model.pt
 
 ```bash
 python run_experiments.py --group activation          # Q2(a): relu, sigmoid, tanh, silu, gelu
-python run_experiments.py --group activation_nobn     # Q2(a): same, without BatchNorm
+python run_experiments.py --group activation_nobn     # optional extra (not run for the report): no BatchNorm
 python run_experiments.py --group optimizer           # Q2(b): 6 optimizers x 3 learning rates
 python run_experiments.py --group lr bs epochs        # Q2(c)
+python run_experiments.py --group refine              # 3 follow-ups used to choose the final config
 python run_experiments.py --group all --dry_run       # list every run without training
 ```
 
@@ -90,7 +92,7 @@ Every family changes one thing relative to a shared baseline: ReLU + BatchNorm, 
 
 ```bash
 wandb sweep configs/sweep.yaml                         # prints the sweep id
-wandb agent <entity>/cs6886w-vgg6-cifar10/<sweep_id> --count 8
+wandb agent <entity>/cs6886w-vgg6-cifar10/<sweep_id> --count 6
 python scripts/wandb_report.py                         # W&B report with the Q3 panels
 python scripts/make_plots.py                           # local figures + LaTeX tables for the PDF
 ```
