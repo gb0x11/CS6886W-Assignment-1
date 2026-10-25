@@ -8,6 +8,7 @@ resumed.
     python run_experiments.py --group activation          # Q2(a)
     python run_experiments.py --group optimizer           # Q2(b)
     python run_experiments.py --group bs lr epochs        # Q2(c)
+    python run_experiments.py --group refine              # follow-ups to pick the final config
     python run_experiments.py --group sweep --n 12        # random sweep (Q3)
     python run_experiments.py --group all --dry_run       # list every run
 """
@@ -56,6 +57,9 @@ def family(group, n_sweep=12, sweep_seed=0):
         return [var(batch_size=b) for b in (32, 64, 128, 256, 512)]
     if group == "epochs":
         return [var(epochs=e) for e in (5, 10, 20, 40)]
+    if group == "refine":  # follow-ups around the best optimizer settings of Q2(b)
+        return [var(optimizer="nadam", lr=0.006), var(optimizer="nesterov", lr=0.2),
+                var(optimizer="nadam", lr=0.003, activation="gelu")]
     if group == "sweep":
         with open("configs/sweep.yaml") as f:
             space = yaml.safe_load(f)["parameters"]
@@ -65,7 +69,7 @@ def family(group, n_sweep=12, sweep_seed=0):
     raise ValueError(group)
 
 
-GROUPS = ["activation", "optimizer", "lr", "bs", "epochs", "activation_nobn", "sweep"]
+GROUPS = ["activation", "optimizer", "lr", "bs", "epochs", "refine", "activation_nobn", "sweep"]
 
 
 def main():

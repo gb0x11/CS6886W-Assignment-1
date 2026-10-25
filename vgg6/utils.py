@@ -30,10 +30,16 @@ def get_device(name: str = "auto") -> torch.device:
 
 
 def run_name(cfg: dict) -> str:
-    """Readable run name that encodes the main hyper-parameters."""
+    """Readable run name that encodes the main hyper-parameters.
+
+    Numbers use ``:g`` so 0.0 and 0 (W&B stores whole floats as ints) give the same name.
+    """
+    def g(v):
+        return f"{float(v):g}"
+
     opt = cfg["optimizer"]
     if opt == "sgd":  # distinguish plain SGD from momentum SGD
-        opt += f"_mom_{cfg['momentum']}"
+        opt += f"_mom_{g(cfg['momentum'])}"
     return (f"act_{cfg['activation']}_bs_{cfg['batch_size']}_opt_{opt}"
-            f"_lr_{cfg['lr']}_wd_{cfg['weight_decay']}_ep_{cfg['epochs']}"
+            f"_lr_{g(cfg['lr'])}_wd_{g(cfg['weight_decay'])}_ep_{cfg['epochs']}"
             f"_bn_{cfg['batch_norm']}")
