@@ -8,6 +8,7 @@
 \usepackage{microtype}
 \usepackage{fancyvrb}
 \usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!60!black]{hyperref}
+\makeatletter\g@addto@macro{\UrlBreaks}{\UrlOrds}\makeatother % allow long URLs to wrap
 \setlength{\parskip}{0.5em}
 \setlength{\parindent}{0pt}
 
@@ -22,6 +23,7 @@
 \newcommand{\wbreport}{\href{https://forge.coreweave.com/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10/reports/CS6886W-A1:-VGG6-on-CIFAR-10-(Question-3-plots)--VmlldzoxODE3NjQ4Mw==}{W\&B report: Question 3 plots}}
 
 \input{numbers.tex}
+\providecommand{\ParallelDetail}{}
 
 \begin{document}
 
@@ -50,11 +52,12 @@ W\&B project: \wbproject\\
 \subsection*{(a) Data preparation and transforms}
 
 \begin{center}
+\small
 \begin{tabular}{lll}
 \toprule
 Split & Transform (in order) & Parameters \\
 \midrule
-Train & RandomCrop & $32\times32$ crop of the image zero-padded by 4 pixels on each side \\
+Train & RandomCrop & $32\times32$ crop after zero-padding 4 px per side \\
       & RandomHorizontalFlip & $p=0.5$ \\
       & ToTensor & uint8 $[0,255]\to$ float $[0,1]$ \\
       & Normalize & mean $(0.4914, 0.4822, 0.4465)$, std $(0.2023, 0.1994, 0.2010)$ \\
@@ -69,7 +72,25 @@ The mean and standard deviation are the per-channel statistics of the CIFAR-10 t
 
 \subsection*{(b) Chosen configuration}
 
-\BestConfigText
+The baseline trained for Question 1 is the best configuration found in Question 2 (it is also the answer to Question 4):
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Setting & Value \\
+\midrule
+Activation / BatchNorm & ReLU / on \\
+Optimizer & Nadam ($\beta_1=0.9$, $\beta_2=0.999$), learning rate $3\times10^{-3}$ \\
+Schedule & cosine decay to 0 over all steps, no warm-up \\
+Weight decay & $5\times10^{-4}$ (L2) \\
+Batch size / epochs & 64 / 100 \\
+Augmentation & crop + flip + Cutout(16), Question 1(a) \\
+Seed & 42 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Why this configuration.} Question 2(b) showed Nadam with lr $3\times10^{-3}$ to be the best and fastest optimizer (84.74\% after 20 epochs, ahead of Nesterov SGD at 84.14\%); a larger rate (0.006) was worse (83.38\%), and with Nadam ReLU beat GELU (84.74 vs.\ 84.02\%). Question 2(a) showed ReLU and GELU to be the best activations. Question 2(c) showed that a smaller batch (64 instead of 128) improves accuracy at a moderate cost in time, and that accuracy keeps increasing with the number of epochs without over-fitting (85.9\% at 40 epochs with plain momentum SGD), so the final model is trained for 100 epochs.
 
 \subsection*{(c) Final test accuracy and curves}
 
@@ -77,7 +98,7 @@ The checkpoint with the best validation accuracy (\BestVal\% at epoch \BestEpoch
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\linewidth]{figures/best_run.png}
+\includegraphics[width=0.78\linewidth]{figures/best_run.png}
 \caption{Loss and accuracy curves of the best configuration. Training metrics are measured on the augmented mini-batches during the epoch, which is why training accuracy sits below validation accuracy.}
 \label{fig:best}
 \end{figure}
@@ -103,17 +124,17 @@ All five activations were trained with the baseline (BatchNorm on, momentum SGD,
 \textbf{How performance changes.}
 \begin{itemize}
 \item \textbf{ReLU (83.16\%) and GELU (82.98\%) are best and practically tied}; the 0.2-point gap is within run-to-run noise. Both are non-saturating for positive inputs, so the gradient passes through each layer with slope close to 1 and all four conv layers learn quickly (70\% validation accuracy after 8 epochs).
-\item \textbf{SiLU is close behind (80.62\%)}. It is also non-saturating, but it is smooth and slightly negative for $x<0$; at the start of training its slope near zero is only 0.5, so with the same learning rate it progresses a little more slowly (70\% after 10 epochs) and ends about 2.5 points lower after 20 epochs.
-\item \textbf{Tanh (70.48\%) and sigmoid (59.92\%) are clearly worse.} Both saturate: their derivatives vanish for $|x|\gtrsim2$, and the sigmoid derivative is at most 0.25, so the gradient shrinks by at least $4\times$ per layer. After BatchNorm the pre-activations are roughly $\mathcal N(0,1)$, which for tanh and sigmoid falls mostly into their nearly linear central region, so the network also behaves more like a linear model and has less useful non-linearity. Tanh is zero-centred with slope 1 at the origin and does much better than sigmoid, whose outputs are all positive (mean $\approx0.5$), which biases the next layer's gradients.
+\item \textbf{SiLU is close behind (80.62\%)}. It is also non-saturating, but its gate is softer than GELU's: SiLU is $x\,\sigma(x)$ while GELU is approximately $x\,\sigma(1.702x)$, so SiLU switches from ``off'' to ``linear'' over a range about 1.7 times wider and dips further below zero (minimum $-0.28$ vs.\ $-0.17$). With BatchNorm-normalised inputs a larger share of units therefore sit in the soft, nearly linear zone, which plausibly explains why it learned a little more slowly (70\% after 10 instead of 8 epochs) and ended about 2.5 points lower. With a single seed per setting, part of this gap may also be noise.
+\item \textbf{Tanh (70.48\%) and sigmoid (59.92\%) are clearly worse.} Both saturate: their derivatives vanish for $|x|>2$, and the sigmoid derivative is at most 0.25, so the gradient shrinks by at least $4\times$ per layer. After BatchNorm the pre-activations are roughly $\mathcal N(0,1)$, which for tanh and sigmoid falls mostly into their nearly linear central region, so the network also behaves more like a linear model and has less useful non-linearity. Tanh is zero-centred with slope 1 at the origin and does much better than sigmoid, whose outputs are all positive (mean $\approx0.5$), which biases the next layer's gradients.
 \item \textbf{Stability.} The sigmoid run's validation accuracy is very erratic (it dropped to 19.9\% at epoch 10 before recovering) while its training loss decreased smoothly, a sign that the BatchNorm running statistics used at evaluation time do not match the batch statistics seen in training for this activation at a high learning rate. The ReLU-family runs only show the usual high-learning-rate oscillations, which disappear as the cosine schedule anneals the learning rate.
 \end{itemize}
-\NoBNText
 
 \subsection*{(b) Optimizers}
 
 A single shared learning rate would favour either the SGD family or the adaptive family, so each optimizer was run at three learning rates around its usual default (ReLU, BatchNorm, batch 128, 20 epochs, cosine decay, L2 weight decay $5\times10^{-4}$). ``SGD (plain)'' has no momentum; ``SGD + momentum'' (heavy ball, $\beta=0.9$) comes from the learning-rate study of Question~2(c).
 
 \begin{center}
+\small
 \input{tables/optimizer.tex}
 \end{center}
 
@@ -125,7 +146,7 @@ A single shared learning rate would favour either the SGD family or the adaptive
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.7\linewidth]{figures/optimizer_lr_bars.png}
+\includegraphics[width=0.62\linewidth]{figures/optimizer_lr_bars.png}
 \caption{Best validation accuracy for every optimizer and learning rate.}
 \end{figure}
 
@@ -168,10 +189,18 @@ Each study changes one setting of the baseline (momentum SGD, lr 0.05, batch 128
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\linewidth]{figures/bs.png}\\[4pt]
-\includegraphics[width=0.85\linewidth]{figures/lr.png}\\[4pt]
-\includegraphics[width=0.85\linewidth]{figures/epochs.png}
-\caption{Batch size (top), learning rate (middle) and number of epochs (bottom).}
+\includegraphics[width=0.78\linewidth]{figures/bs.png}
+\caption{Batch size (lr 0.05, 20 epochs).}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/lr.png}
+\caption{Learning rate (momentum SGD, batch 128, 20 epochs).}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/epochs.png}
+\caption{Number of epochs (momentum SGD, lr 0.05, batch 128).}
 \end{figure}
 
 \textbf{Batch size.} With the learning rate and the number of epochs fixed, accuracy falls steadily as the batch grows: 84.3\% (32), 84.1\% (64), 83.2\% (128), 79.9\% (256), 76.1\% (512). The main reason is the number of parameter updates: one epoch is 1{,}407 steps at batch 32 but only 88 at batch 512, so after 20 epochs the large-batch model has taken 16$\times$ fewer steps of the same size and is still far from converged (70\% only at epoch 15 instead of 8 or 9). Small batches also add gradient noise, which helps escape sharp regions of the loss. The price is wall-clock time: the GPU is under-utilised by small batches, so an epoch takes 24.1\,s at batch 32 versus 17.2\,s at batch 512. Batch 64 is the best trade-off (84.1\% at 20.5\,s per epoch). Large batches are not inherently worse; they need a proportionally larger learning rate (linear scaling rule). The SGD noise scale is roughly proportional to lr/batch, and indeed batch 32 with lr 0.05 (84.3\%) and batch 128 with lr 0.2 (83.7\%), which have the same ratio, end almost equal.
@@ -185,7 +214,7 @@ Each study changes one setting of the baseline (momentum SGD, lr 0.05, batch 128
 %=====================================================================
 \section*{Question 3: Plots}
 
-All plots below are produced automatically from the W\&B runs. The live versions are in the \wbreport{} (project: \wbproject). The figures in this PDF are rendered from the same logged metrics (\texttt{scripts/make\_plots.py}) \WandbFigNote
+All plots below are produced automatically from the W\&B runs. The live versions are in the \wbreport{} of the W\&B project linked on the first page. The figures in this PDF are rendered from exactly the same logged per-epoch metrics by \texttt{scripts/make\_plots.py}, in the same layout as the W\&B panels (a W\&B screenshot saved as \texttt{report/figures/wandb/<panel>.png} replaces the corresponding rendering when the PDF is rebuilt).
 
 \subsection*{(a) Parallel-coordinates plot}
 \begin{figure}[H]
@@ -193,7 +222,7 @@ All plots below are produced automatically from the W\&B runs. The live versions
 \wbfig{parallel_coordinates}{parallel_coordinates}{1.0}
 \caption{Every run: hyper-parameters (axes) and best validation accuracy (colour, last axis).}
 \end{figure}
-\ParallelText
+\textbf{Reading the plot.} \ParallelDetail
 
 \subsection*{(b) Validation accuracy vs.\ step (created)}
 \begin{figure}[H]
@@ -215,13 +244,25 @@ All plots below are produced automatically from the W\&B runs. The live versions
 %=====================================================================
 \section*{Question 4: Final model performance}
 
-\FinalText
+The run with the highest validation accuracy in the parallel-coordinates plot (Question 3a, top line of the last axis) is:
+
+\begin{center}
+\fbox{\parbox{0.9\linewidth}{\centering\small
+\texttt{\BestName}\\[3pt]
+activation = relu, batch\_norm = true, optimizer = nadam, lr = 0.003, weight\_decay = 0.0005,\\
+batch\_size = 64, epochs = 100, scheduler = cosine, seed = 42\\
+(momentum = 0.9 is in the config but unused by Nadam)\\[3pt]
+\textbf{best validation accuracy \BestVal\%} (epoch \BestEpoch), \textbf{test accuracy \BestTest\%}}}
+\end{center}
+
+It is stored in \texttt{configs/best.yaml}, and the command in Question~5(c) reproduces it. The trained weights are \texttt{checkpoints/best\_model.pt}; \texttt{python evaluate.py} reloads them and prints the same validation and test accuracy. Reproducibility was checked in two ways: (1) re-evaluating the saved checkpoint gives exactly 86.36\% validation and 85.72\% test accuracy; (2) training \texttt{configs/best.yaml} twice from scratch (2 epochs) gave identical losses and accuracies to every printed digit, because all random numbers (initialisation, shuffling, augmentation) come from seeded generators. The per-class test accuracies of the final model range from 75.2\% (cat) and 78.5\% (dog) to 92.9\% (ship), so the two visually similar animal classes cat and dog are the hardest.
 
 %=====================================================================
 \section*{Question 5: Reproducibility and repository}
 
 \textbf{(a) Code structure.} The code is split into a small package and thin entry scripts:
 \begin{center}
+\small
 \begin{tabular}{ll}
 \toprule
 File & Responsibility \\
@@ -234,8 +275,10 @@ File & Responsibility \\
 \texttt{train.py} & training of one configuration, W\&B logging, checkpointing \\
 \texttt{evaluate.py} & evaluation of a saved checkpoint (validation, test, per-class accuracy) \\
 \texttt{run\_experiments.py} & the experiment families of Question 2 \\
-\texttt{configs/best.yaml}, \texttt{configs/sweep.yaml} & best configuration, W\&B sweep definition \\
-\texttt{scripts/make\_plots.py}, \texttt{scripts/wandb\_report.py} & figures/tables for this PDF, W\&B report \\
+\texttt{configs/best.yaml} & best configuration (Question 4) \\
+\texttt{configs/sweep.yaml} & W\&B sweep definition \\
+\texttt{scripts/make\_plots.py} & figures and tables of this PDF \\
+\texttt{scripts/wandb\_report.py} & W\&B report with the Question 3 panels \\
 \bottomrule
 \end{tabular}
 \end{center}

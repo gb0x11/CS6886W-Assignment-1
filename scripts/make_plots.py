@@ -80,7 +80,7 @@ def curves(rs, labels, title, path, metrics=("train_loss", "val_loss", "train_ac
 
 
 def bar(values, labels, title, path, xlabel="Best validation accuracy (%)"):
-    fig, ax = plt.subplots(figsize=(6.5, 0.38 * len(values) + 0.9))
+    fig, ax = plt.subplots(figsize=(6.5, 0.26 * len(values) + 0.9))
     y = np.arange(len(values))
     ax.barh(y, values, color=SERIES[0], height=0.6)
     for yi, v in zip(y, values):
@@ -161,13 +161,16 @@ def parallel_coordinates(df, path):
         lo, hi = x.min(), x.max()
         cols.append(((x - lo) / (hi - lo if hi > lo else 1)).values)
         tv = sorted(v.unique())
-        if len(tv) > 8:  # label a spread-out subset of the values actually used
-            tv = [tv[i] for i in np.linspace(0, len(tv) - 1, 7).round().astype(int)]
+        if col == "best_val_acc":  # continuous metric: evenly spaced round ticks
+            tv = list(np.arange(np.ceil(v.min() / 5) * 5, v.max() + 0.01, 5))
+        elif len(tv) > 6:  # label a spread-out subset of the values actually used
+            tv = [tv[i] for i in np.linspace(0, len(tv) - 1, 6).round().astype(int)]
         tx = [((np.log10(t) if scale == "log" else t) - lo) / (hi - lo if hi > lo else 1) for t in tv]
         ticks.append([(p, f"{t:g}") for p, t in zip(tx, tv)])
     M = np.vstack(cols).T
     acc = d["best_val_acc"].values
-    norm = plt.Normalize(acc.min(), acc.max())
+    # Colour from the 10th percentile up, so a few failed runs do not wash out the rest.
+    norm = plt.Normalize(np.percentile(acc, 10), acc.max(), clip=True)
     fig, ax = plt.subplots(figsize=(11, 4.6))
     for i in np.argsort(acc):  # best runs drawn last (on top)
         ax.plot(range(len(axes_spec)), M[i], color=SEQ(norm(acc[i])), lw=1.1, alpha=0.85)
@@ -191,7 +194,7 @@ def parallel_coordinates(df, path):
 def all_runs_panels(runs, df, path_prefix):
     """W&B-style panels: every run's train/val loss/accuracy vs. epoch, plus val_acc vs. run."""
     order = list(df.sort_values("best_val_acc")["name"])
-    norm = plt.Normalize(df["best_val_acc"].min(), df["best_val_acc"].max())
+    norm = plt.Normalize(np.percentile(df["best_val_acc"], 10), df["best_val_acc"].max(), clip=True)
     for m, lab in [("train_acc", "Training accuracy (%)"), ("train_loss", "Training loss"),
                    ("val_acc", "Validation accuracy (%)"), ("val_loss", "Validation loss")]:
         fig, ax = plt.subplots(figsize=(6.5, 3.4))
@@ -286,7 +289,15 @@ def main():
         with open("configs/best.yaml") as f:
             best_name = run_name(dict(DEFAULTS, **yaml.safe_load(f)))
     if best_name in runs:
-        curves([runs[best_name]], ["best configuration"], f"Best run: {best_name}", f"{FIG}/best_run.png")
+        b = runs[best_name]
+        curves([b], ["best configuration"], f"Best run: {best_name}", f"{FIG}/best_run.png")
+        # Headline numbers used by report/report.tex
+        with open("report/numbers.tex", "w") as fh:
+            fh.write(f"\\newcommand{{\\NumRuns}}{{{len(runs)}}}\n"
+                     f"\\newcommand{{\\BestVal}}{{{b['final']['best_val_acc']:.2f}}}\n"
+                     f"\\newcommand{{\\BestTest}}{{{b['final']['test_acc']:.2f}}}\n"
+                     f"\\newcommand{{\\BestEpoch}}{{{b['final']['best_epoch']}}}\n"
+                     f"\\newcommand{{\\BestName}}{{{best_name.replace('_', '\\_')}}}\n")
 
     # Q3 W&B-style panels
     parallel_coordinates(df, f"{FIG}/parallel_coordinates.png")

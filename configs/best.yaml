@@ -1,0 +1,15 @@
+# Best configuration (Question 4). Reproduce with:  python train.py --config configs/best.yaml
+activation: relu
+batch_norm: true
+optimizer: nadam
+lr: 0.003
+weight_decay: 0.0005
+batch_size: 64
+epochs: 100
+scheduler: cosine
+warmup_epochs: 0
+label_smoothing: 0.0
+cutout: 16
+val_size: 5000
+seed: 42
+group: final

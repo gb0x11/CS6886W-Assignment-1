@@ -1,11 +1,16 @@
 name,group,activation,batch_norm,optimizer,momentum,lr,batch_size,epochs,weight_decay,best_val_acc,best_epoch,test_acc,final_train_acc,train_time_min,sec_per_epoch,epochs_to_80
+act_relu_bs_64_opt_nadam_lr_0.003_wd_0.0005_ep_100_bn_True,final,relu,True,nadam,0.9,0.003,64,100,0.0005,86.36,100,85.72,84.25,37.62,22.55,59
+act_relu_bs_128_opt_sgd_mom_0.9_lr_0.05_wd_0.0005_ep_40_bn_True,epochs,relu,True,sgd,0.9,0.05,128,40,0.0005,85.88,39,85.22,84.6,11.69,17.5,25
 act_relu_bs_128_opt_nadam_lr_0.003_wd_0.0005_ep_20_bn_True,optimizer,relu,True,nadam,0.9,0.003,128,20,0.0005,84.74,20,84.92,82.41,5.911,17.68,14
 act_relu_bs_32_opt_sgd_mom_0.9_lr_0.05_wd_0.0005_ep_20_bn_True,bs,relu,True,sgd,0.9,0.05,32,20,0.0005,84.26,20,84.24,80.61,8.408,25.17,16
 act_relu_bs_128_opt_nesterov_lr_0.1_wd_0.0005_ep_20_bn_True,optimizer,relu,True,nesterov,0.9,0.1,128,20,0.0005,84.14,20,83.97,81.47,5.874,17.57,16
 act_relu_bs_64_opt_sgd_mom_0.9_lr_0.05_wd_0.0005_ep_20_bn_True,bs,relu,True,sgd,0.9,0.05,64,20,0.0005,84.12,19,83.52,81.08,6.901,20.65,16
+act_relu_bs_128_opt_nesterov_lr_0.2_wd_0.0005_ep_20_bn_True,refine,relu,True,nesterov,0.9,0.2,128,20,0.0005,84.04,20,83.91,81.51,6.054,18.1,16
+act_gelu_bs_128_opt_nadam_lr_0.003_wd_0.0005_ep_20_bn_True,refine,gelu,True,nadam,0.9,0.003,128,20,0.0005,84.02,20,83.38,81.54,7.86,23.49,15
 act_relu_bs_128_opt_adam_lr_0.003_wd_0.0005_ep_20_bn_True,optimizer,relu,True,adam,0.9,0.003,128,20,0.0005,84,20,83.72,81.22,5.92,17.7,14
 act_relu_bs_128_opt_sgd_mom_0.9_lr_0.2_wd_0.0005_ep_20_bn_True,lr,relu,True,sgd,0.9,0.2,128,20,0.0005,83.74,20,83.51,81.01,5.834,17.45,16
 act_relu_bs_128_opt_nesterov_lr_0.05_wd_0.0005_ep_20_bn_True,optimizer,relu,True,nesterov,0.9,0.05,128,20,0.0005,83.6,20,82.6,80.48,5.869,17.55,15
+act_relu_bs_128_opt_nadam_lr_0.006_wd_0.0005_ep_20_bn_True,refine,relu,True,nadam,0.9,0.006,128,20,0.0005,83.38,20,81.82,79.45,112.9,338.5,15
 act_relu_bs_128_opt_sgd_mom_0.9_lr_0.05_wd_0.0005_ep_20_bn_True,activation,relu,True,sgd,0.9,0.05,128,20,0.0005,83.16,19,81.66,79.82,6.062,18.13,16
 act_gelu_bs_128_opt_sgd_mom_0.9_lr_0.05_wd_0.0005_ep_20_bn_True,activation,gelu,True,sgd,0.9,0.05,128,20,0.0005,82.98,19,81.53,79.24,5.859,17.52,15
 act_relu_bs_128_opt_sgd_mom_0.9_lr_0.1_wd_0.0005_ep_20_bn_True,lr,relu,True,sgd,0.9,0.1,128,20,0.0005,82.72,20,83.29,80.98,5.841,17.47,15
@@ -32,3 +37,4 @@ act_relu_bs_128_opt_sgd_mom_0.9_lr_0.05_wd_0.0005_ep_5_bn_True,epochs,relu,True,
 act_relu_bs_128_opt_adagrad_lr_0.003_wd_0.0005_ep_20_bn_True,optimizer,relu,True,adagrad,0.9,0.003,128,20,0.0005,64.58,15,63.8,61.76,5.926,17.72,
 act_relu_bs_128_opt_rmsprop_lr_0.0001_wd_0.0005_ep_20_bn_True,optimizer,relu,True,rmsprop,0.9,0.0001,128,20,0.0005,63.84,20,63.34,61.03,9.231,27.58,
 act_sigmoid_bs_128_opt_sgd_mom_0.9_lr_0.05_wd_0.0005_ep_20_bn_True,activation,sigmoid,True,sgd,0.9,0.05,128,20,0.0005,59.92,20,59.5,57.21,5.937,17.76,
+act_tanh_bs_256_opt_sgd_mom_0_lr_0.01_wd_0_ep_20_bn_False,sweep,tanh,False,sgd,0,0.01,256,20,0,35.7,16,36.18,34.71,6.343,18.97,
