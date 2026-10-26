@@ -8,7 +8,7 @@ __pycache__/
 data/
 
 # W&B local run files and logs
-wandb/
+/wandb/
 logs/
 
 # per-run checkpoints; only the final model is committed
