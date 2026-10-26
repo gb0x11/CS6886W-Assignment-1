@@ -4,7 +4,7 @@ This repository explores how the **activation function, optimizer, batch size, n
 
 **Author:** Gowtham B (CS25M508)  
 **W&B project:** https://forge.coreweave.com/wandb/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10  
-**W&B report (Question 3 plots):** https://forge.coreweave.com/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10/reports/CS6886W-A1:-VGG6-on-CIFAR-10-(Question-3-plots)--VmlldzoxODE3NjQ4Mw==  
+**W&B report (Question 3 plots):** https://forge.coreweave.com/wandb/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10/reports/CS6886W-A1:-VGG6-on-CIFAR-10-(Question-3-plots)--VmlldzoxODE3NjQ4Mw==  
 **W&B sweep (random search, 6 runs):** https://forge.coreweave.com/wandb/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10/sweeps/czt61c5k  
 **Full report (PDF):** [`report/report.pdf`](report/report.pdf)
 
@@ -32,7 +32,9 @@ run_experiments.py  run the experiment families of Q2 and the sampled sweep (Q3)
 configs/
   best.yaml      the single best configuration (Q4)
   sweep.yaml     W&B sweep definition (same search space as the offline sweep)
-scripts/make_plots.py  local plots + summary table from results/runs/*.json
+scripts/make_plots.py  local plots + LaTeX tables from results/runs/*.json
+scripts/wandb_report.py       creates the W&B report with the Q3 panels
+scripts/wandb_screenshots.py  exports those W&B panels as PNGs for the PDF
 results/runs/    per-run JSON (config, per-epoch history, final metrics)
 checkpoints/best_model.pt  trained weights of the best configuration
 ```
@@ -94,6 +96,8 @@ Every family changes one thing relative to a shared baseline: ReLU + BatchNorm, 
 wandb sweep configs/sweep.yaml                         # prints the sweep id
 wandb agent <entity>/cs6886w-vgg6-cifar10/<sweep_id> --count 6
 python scripts/wandb_report.py                         # W&B report with the Q3 panels
+pip install playwright && python -m playwright install chromium
+python scripts/wandb_screenshots.py                    # W&B panels -> report/figures/wandb/*.png
 python scripts/make_plots.py                           # local figures + LaTeX tables for the PDF
 ```
 

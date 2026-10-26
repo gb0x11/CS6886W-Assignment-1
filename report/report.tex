@@ -20,7 +20,7 @@
 
 \newcommand{\repo}{\url{https://github.com/gb0x11/CS6886W-Assignment-1}}
 \newcommand{\wbproject}{\url{https://forge.coreweave.com/wandb/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10}}
-\newcommand{\wbreport}{\href{https://forge.coreweave.com/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10/reports/CS6886W-A1:-VGG6-on-CIFAR-10-(Question-3-plots)--VmlldzoxODE3NjQ4Mw==}{W\&B report: Question 3 plots}}
+\newcommand{\wbreport}{\href{https://forge.coreweave.com/wandb/cs25m508-indian-institute-of-technology/cs6886w-vgg6-cifar10/reports/CS6886W-A1:-VGG6-on-CIFAR-10-(Question-3-plots)--VmlldzoxODE3NjQ4Mw==}{W\&B report: Question 3 plots}}
 
 \input{numbers.tex}
 
@@ -213,31 +213,42 @@ Each study changes one setting of the baseline (momentum SGD, lr 0.05, batch 128
 %=====================================================================
 \section*{Question 3: Plots}
 
-All plots below are produced automatically from the W\&B runs. The live versions are in the \wbreport{} of the W\&B project linked on the first page. The figures in this PDF are rendered from exactly the same logged per-epoch metrics by \texttt{scripts/make\_plots.py}, in the same layout as the W\&B panels (a W\&B screenshot saved as \texttt{report/figures/wandb/<panel>.png} replaces the corresponding rendering when the PDF is rebuilt).
+All plots below are W\&B panels, generated automatically by W\&B from the logged runs. They come from the \wbreport{} (created by \texttt{scripts/wandb\_report.py}) and were exported to images with \texttt{scripts/wandb\_screenshots.py}. The W\&B summary metric \texttt{best\_val\_acc} (shown as \texttt{val\_acc} in the parallel plot) is the best validation accuracy of a run.
 
 \subsection*{(a) Parallel-coordinates plot}
 \begin{figure}[H]
 \centering
 \wbfig{parallel_coordinates}{parallel_coordinates}{1.0}
-\caption{Every run: hyper-parameters (axes) and best validation accuracy (colour, last axis).}
+\caption{W\&B parallel-coordinates plot of all runs: hyper-parameters (axes) and best validation accuracy (last axis and colour, yellow = high, purple = low).}
 \end{figure}
-\textbf{Reading the plot.} Each line is one of the \NumRuns{} runs (the Question 2 studies, the follow-ups, the final run and the six runs of the W\&B random sweep), coloured by its best validation accuracy. The darkest lines all share BatchNorm, ReLU or GELU, an optimizer with momentum (Nadam, Nesterov, SGD + momentum or Adam) at the upper end of its learning-rate range, a batch of 32 to 128 and 20 or more epochs. The top line (86.36\%) is the final configuration of Question 4 (ReLU, Nadam lr 0.003, batch 64, 100 epochs), followed by momentum SGD trained for 40 epochs (85.88\%). The lightest lines are the configurations that failed or learned slowly: no BatchNorm together with a saturating activation (sigmoid with RMSprop at lr 0.01 stayed at chance level, 10.4\%; tanh with plain SGD reached 35.7\%), sigmoid even with BatchNorm (59.9\%), and adaptive optimizers at too small a learning rate (RMSprop at $10^{-4}$: 63.8\%, Adagrad at 0.003: 64.6\%). The best of the three runs without BatchNorm reached only 75.2\% (ReLU + Adam, 10 epochs). BatchNorm is therefore the most decisive setting, followed by the activation and the optimizer/learning-rate pair; momentum and weight decay matter mainly through the optimizer they belong to.
+\textbf{Reading the plot.} Each line is one of the \NumRuns{} runs (the Question 2 studies, the follow-ups, the final run and the six runs of the W\&B random sweep), coloured by its best validation accuracy. The bright yellow lines (highest accuracy) all share BatchNorm, ReLU or GELU, an optimizer with momentum (Nadam, Nesterov, SGD + momentum or Adam) at the upper end of its learning-rate range, a batch of 32 to 128 and 20 or more epochs. The top line (86.36\%) is the final configuration of Question 4 (ReLU, Nadam lr 0.003, batch 64, 100 epochs), followed by momentum SGD trained for 40 epochs (85.88\%). The red and purple lines are the configurations that failed or learned slowly: no BatchNorm together with a saturating activation (sigmoid with RMSprop at lr 0.01 stayed at chance level, 10.4\%; tanh with plain SGD reached 35.7\%), sigmoid even with BatchNorm (59.9\%), and adaptive optimizers at too small a learning rate (RMSprop at $10^{-4}$: 63.8\%, Adagrad at 0.003: 64.6\%). The best of the three runs without BatchNorm reached only 75.2\% (ReLU + Adam, 10 epochs). BatchNorm is therefore the most decisive setting. W\&B's parameter-importance panel (Figure~\ref{fig:importance}) agrees: \texttt{batch\_norm} has by far the highest importance for \texttt{best\_val\_acc}, followed by the learning rate, and sigmoid has the strongest negative correlation with accuracy. Momentum and weight decay matter mainly through the optimizer they belong to.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/wandb/param_importance.png}
+\caption{W\&B parameter importance and correlation with respect to \texttt{best\_val\_acc}.}
+\label{fig:importance}
+\end{figure}
 
 \subsection*{(b) Validation accuracy vs.\ step (created)}
 \begin{figure}[H]
 \centering
-\wbfig{valacc_scatter}{all_runs_valacc_scatter}{0.8}
-\caption{Best validation accuracy of every run in order of creation; the line is the running maximum.}
+\wbfig{valacc_scatter}{all_runs_valacc_scatter}{1.0}
+\caption{W\&B scatter plot of the best validation accuracy of every run against its creation time (the x-axis gaps are the hours the machine was asleep); the line is the running maximum.}
 \end{figure}
 
 \subsection*{(c) Training loss, training accuracy, validation loss, validation accuracy}
 \begin{figure}[H]
 \centering
-\wbfig{train_acc}{all_runs_train_acc}{0.49}\hfill
-\wbfig{train_loss}{all_runs_train_loss}{0.49}\\[4pt]
-\wbfig{val_acc}{all_runs_val_acc}{0.49}\hfill
-\wbfig{val_loss}{all_runs_val_loss}{0.49}
-\caption{train\_acc, train\_loss, val\_acc and val\_loss vs.\ epoch for all runs (colour = best validation accuracy of the run).}
+\wbfig{train_acc}{all_runs_train_acc}{0.72}\\[2pt]
+\wbfig{train_loss}{all_runs_train_loss}{0.72}
+\caption{W\&B line plots of training accuracy (train\_acc) and training loss (train\_loss) vs.\ epoch for all runs (one colour per run; the legend lists the most recent runs). The single 100-epoch curve is the final model.}
+\end{figure}
+\begin{figure}[H]
+\centering
+\wbfig{val_acc}{all_runs_val_acc}{0.72}\\[2pt]
+\wbfig{val_loss}{all_runs_val_loss}{0.72}
+\caption{W\&B line plots of validation accuracy (val\_acc) and validation loss (val\_loss) vs.\ epoch for all runs.}
 \end{figure}
 
 %=====================================================================
@@ -278,6 +289,7 @@ File & Responsibility \\
 \texttt{configs/sweep.yaml} & W\&B sweep definition \\
 \texttt{scripts/make\_plots.py} & figures and tables of this PDF \\
 \texttt{scripts/wandb\_report.py} & W\&B report with the Question 3 panels \\
+\texttt{scripts/wandb\_screenshots.py} & export of those W\&B panels as images for this PDF \\
 \bottomrule
 \end{tabular}
 \end{center}
